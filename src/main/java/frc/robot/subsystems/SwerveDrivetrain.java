@@ -48,7 +48,9 @@ public class SwerveDrivetrain extends SubsystemBase {
 	public static final double FRONT_RIGHT_VIRTUAL_OFFSET_RADIANS = -1.242; //invert right(+ or - pi) // adjust as needed so that virtual (turn) position of wheel is zero when straight
 	public static final double REAR_RIGHT_VIRTUAL_OFFSET_RADIANS = -2.525; //invert right(+ or- pi) // adjust as needed so that virtual (turn) position of wheel is zero when straight
 
+	
 	public static final int GYRO_ORIENTATION = -1; // might be able to merge with kGyroReversed
+	public static final int GYRO_OFFSET = 90;
 
 	public static final double FIELD_LENGTH_INCHES = 54*12+1; // 54ft 1in
 	public static final double FIELD_WIDTH_INCHES = 26*12+7; // 26ft 7in
@@ -373,32 +375,32 @@ public class SwerveDrivetrain extends SubsystemBase {
 	/** Zeroes the heading of the robot. */
 	public void zeroHeading() {
 		m_gyro.reset();
-		m_gyro.setAngleAdjustment(0);
+		m_gyro.setAngleAdjustment((0 + GYRO_OFFSET) % 360);
 	}
 
 	public void oppositeHeading() {
 		m_gyro.reset();
-		m_gyro.setAngleAdjustment(180);
+		m_gyro.setAngleAdjustment((180 + GYRO_OFFSET) % 360);
 	}
 
 	public void blueLeftSubHeading() {
 		m_gyro.reset();
-		m_gyro.setAngleAdjustment(300);
+		m_gyro.setAngleAdjustment((300 + GYRO_OFFSET) % 360);
 	}
 
 	public void blueRightSubHeading() {
 		m_gyro.reset();
-		m_gyro.setAngleAdjustment(60);
+		m_gyro.setAngleAdjustment((60 + GYRO_OFFSET) % 360);
 	}
 
 	public void redLeftSubHeading() {
 		m_gyro.reset();
-		m_gyro.setAngleAdjustment(300);
+		m_gyro.setAngleAdjustment((300 + GYRO_OFFSET) % 360);
 	}
 
 	public void redRightSubHeading() {
 		m_gyro.reset();
-		m_gyro.setAngleAdjustment(60);
+		m_gyro.setAngleAdjustment((60 + GYRO_OFFSET) % 360);
 	}
 
 	public void stop()

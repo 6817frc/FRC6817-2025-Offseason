@@ -6,6 +6,7 @@ package frc.robot;
 
 import frc.robot.subsystems.SwerveDrivetrain;
 import frc.robot.utils.Ports;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -19,6 +20,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+
+	public static final double JOYSTICK_AXIS_THRESHOLD = 0.15;
 
   private final SwerveDrivetrain drivetrain = new SwerveDrivetrain();
 
@@ -53,15 +56,16 @@ public class RobotContainer {
   private void configureBindings() {
     drivetrain.setDefaultCommand(new RunCommand(()-> {
       getDriveValues();
-      drivetrain.drive(leftStickX, leftStickY, rightStickX);
-    }));
+      drivetrain.drive(-leftStickX, leftStickY, -rightStickX);
+    }, drivetrain));
 
     driverController.a().onTrue(Commands.runOnce(() -> {useCopilot = !useCopilot;}));
+    driverController.y().onTrue(Commands.runOnce(() -> drivetrain.zeroHeading()));
   }
 
   private void getDriveValues() {
     if (useCopilot) {
-      speedMult = 0.2;
+      speedMult = 0.1;
       leftStickX = copilotController.getLeftX();
       leftStickY = copilotController.getLeftY();
       rightStickX = copilotController.getRightX();
@@ -72,10 +76,15 @@ public class RobotContainer {
       rightStickX = driverController.getRightX();
     }
 
-    leftStickX *= speedMult;
-    leftStickY *= speedMult;
-    rightStickX *= speedMult;
+    leftStickX = MathUtil.applyDeadband(leftStickX, JOYSTICK_AXIS_THRESHOLD) * speedMult;
+    leftStickY = MathUtil.applyDeadband(leftStickY, JOYSTICK_AXIS_THRESHOLD) * speedMult;
+    rightStickX = MathUtil.applyDeadband(rightStickX, JOYSTICK_AXIS_THRESHOLD) * speedMult;
   }
+
+  public SwerveDrivetrain getDrivetrain()
+	{
+		return drivetrain;
+	}
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
