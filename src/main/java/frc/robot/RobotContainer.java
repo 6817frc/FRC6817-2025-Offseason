@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import frc.robot.subsystems.CoralIntake;
 import frc.robot.subsystems.SwerveDrivetrain;
 import frc.robot.utils.Ports;
 import edu.wpi.first.math.MathUtil;
@@ -11,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -23,10 +23,13 @@ public class RobotContainer {
 
 	public static final double JOYSTICK_AXIS_THRESHOLD = 0.15;
 
-  private final SwerveDrivetrain drivetrain = new SwerveDrivetrain();
+  public final SwerveDrivetrain drivetrain = new SwerveDrivetrain();
+
+  public final CoralIntake intake = new CoralIntake();
 
   private boolean useCopilot = false;
-  private double speedMult = 1;
+  private double speedMultMain = 1;
+  private double speedMultSecondary = 1;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driverController =
@@ -54,31 +57,49 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    drivetrain.setDefaultCommand(new RunCommand(()-> {
+    drivetrain.setDefaultCommand(new RunCommand(() -> {
       getDriveValues();
       drivetrain.drive(-leftStickX, leftStickY, -rightStickX);
     }, drivetrain));
 
-    driverController.a().onTrue(Commands.runOnce(() -> {useCopilot = !useCopilot;}));
-    driverController.y().onTrue(Commands.runOnce(() -> drivetrain.zeroHeading()));
+    
+    driverController.a().onTrue(Commands.runOnce(() -> {useCopilot = !useCopilot;})); // button:A - Transfer drive to copilot
+    
+    driverController.y().onTrue(Commands.runOnce(() -> drivetrain.zeroHeading())); // button:Y - Reset field orientation
+    
+    driverController.povDown().onTrue(Commands.runOnce(() -> intake.armL1())); // dPad:Down - L1
+    
+    driverController.povLeft().onTrue(Commands.runOnce(() -> intake.armL2())); // dPad:Left - L2
+    
+    driverController.povRight().onTrue(Commands.runOnce(() -> intake.armTravel())); // dPad:Right - Travel
+    
+    driverController.povUp().onTrue(Commands.runOnce(() -> intake.armIntake())); // dPad:Up - Human Player
+
+    driverController.rightBumper().onTrue(Commands.runOnce(() -> intake.wheelOut(0.1))); // rightBumper - Wheel Out
+    driverController.rightBumper().onFalse(Commands.runOnce(() -> intake.stopWheels())); // Stop wheel
+
+    driverController.leftBumper().onTrue(Commands.runOnce(() -> intake.wheelIn(0.1))); // leftBumper - Wheel In
+    driverController.leftBumper().onFalse(Commands.runOnce(() -> intake.stopWheels())); // Stop wheel
   }
 
   private void getDriveValues() {
     if (useCopilot) {
-      speedMult = 0.1;
+      speedMultSecondary = 0.1;
       leftStickX = copilotController.getLeftX();
       leftStickY = copilotController.getLeftY();
       rightStickX = copilotController.getRightX();
     } else {
-      speedMult = 1;
+      speedMultSecondary = 1;
       leftStickX = driverController.getLeftX();
       leftStickY = driverController.getLeftY();
       rightStickX = driverController.getRightX();
     }
 
-    leftStickX = MathUtil.applyDeadband(leftStickX, JOYSTICK_AXIS_THRESHOLD) * speedMult;
-    leftStickY = MathUtil.applyDeadband(leftStickY, JOYSTICK_AXIS_THRESHOLD) * speedMult;
-    rightStickX = MathUtil.applyDeadband(rightStickX, JOYSTICK_AXIS_THRESHOLD) * speedMult;
+    speedMultMain = (1 - driverController.getRightTriggerAxis());
+
+    leftStickX = MathUtil.applyDeadband(leftStickX, JOYSTICK_AXIS_THRESHOLD) * speedMultSecondary * speedMultMain;
+    leftStickY = MathUtil.applyDeadband(leftStickY, JOYSTICK_AXIS_THRESHOLD) * speedMultSecondary * speedMultMain;
+    rightStickX = MathUtil.applyDeadband(rightStickX, JOYSTICK_AXIS_THRESHOLD) * speedMultSecondary * speedMultMain;
   }
 
   public SwerveDrivetrain getDrivetrain()
