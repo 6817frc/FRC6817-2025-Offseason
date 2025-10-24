@@ -107,9 +107,16 @@ public class Robot extends TimedRobot {
   public void simulationPeriodic() {}
 
   public void updateSmartDash() {
-    SmartDashboard.putNumber("FrontLeftTurningAbsoluteEncoderPosition", m_robotContainer.drivetrain.getFrontLeftModule().getTurningAbsoluteEncoder().getPosition());
-		SmartDashboard.putNumber("RearLeftTurningAbsoluteEncoderPosition", m_robotContainer.drivetrain.getRearLeftModule().getTurningAbsoluteEncoder().getPosition());
-		SmartDashboard.putNumber("FrontRightTurningAbsoluteEncoderPosition", m_robotContainer.drivetrain.getFrontRightModule().getTurningAbsoluteEncoder().getPosition());
-		SmartDashboard.putNumber("RearRightTurningAbsoluteEncoderPosition", m_robotContainer.drivetrain.getRearRightModule().getTurningAbsoluteEncoder().getPosition());
+    SmartDashboard.putNumber("Front Left Turning Absolute Encoder Position", m_robotContainer.getDriveTrain().getFrontLeftModule().getTurningAbsoluteEncoder().getPosition());
+		SmartDashboard.putNumber("Rear Left Turning Absolute Encoder Position", m_robotContainer.getDriveTrain().getRearLeftModule().getTurningAbsoluteEncoder().getPosition());
+		SmartDashboard.putNumber("Front Right Turning Absolute Encoder Position", m_robotContainer.getDriveTrain().getFrontRightModule().getTurningAbsoluteEncoder().getPosition());
+		SmartDashboard.putNumber("Rear Right Turning Absolute Encoder Position", m_robotContainer.getDriveTrain().getRearRightModule().getTurningAbsoluteEncoder().getPosition());
+
+    SmartDashboard.putNumber("Arm Position", m_robotContainer.getIntake().getArmEncoder().getPosition());
+    SmartDashboard.putNumber("Wrist Position", m_robotContainer.getIntake().getWristEncoder().getPosition());
+    
+    SmartDashboard.putNumber("IMU Yaw", m_robotContainer.getDriveTrain().getImu().getYaw());
+    SmartDashboard.putNumber("IMU Pitch", m_robotContainer.getDriveTrain().getImu().getPitch());
+    SmartDashboard.putNumber("IMU Roll", m_robotContainer.getDriveTrain().getImu().getRoll());
   }
 }

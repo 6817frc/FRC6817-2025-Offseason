@@ -75,11 +75,11 @@ public class RobotContainer {
     
     driverController.povUp().onTrue(Commands.runOnce(() -> intake.armIntake())); // dPad:Up - Human Player
 
-    driverController.rightBumper().onTrue(Commands.runOnce(() -> intake.wheelOut(0.1))); // rightBumper - Wheel Out
-    driverController.rightBumper().onFalse(Commands.runOnce(() -> intake.stopWheels())); // Stop wheel
+    driverController.rightBumper().onTrue(Commands.runOnce(() -> intake.setWheelPower(-0.1))); // rightBumper - Wheel Out
+    driverController.rightBumper().onFalse(Commands.runOnce(() -> intake.wheelStop())); // Stop wheel
 
-    driverController.leftBumper().onTrue(Commands.runOnce(() -> intake.wheelIn(0.1))); // leftBumper - Wheel In
-    driverController.leftBumper().onFalse(Commands.runOnce(() -> intake.stopWheels())); // Stop wheel
+    driverController.leftBumper().onTrue(Commands.runOnce(() -> intake.setWheelPower(0.1))); // leftBumper - Wheel In
+    driverController.leftBumper().onFalse(Commands.runOnce(() -> intake.wheelStop())); // Stop wheel
   }
 
   private void getDriveValues() {
@@ -95,17 +95,20 @@ public class RobotContainer {
       rightStickX = driverController.getRightX();
     }
 
-    speedMultMain = (1 - driverController.getRightTriggerAxis());
+    speedMultMain = 1 - driverController.getRightTriggerAxis() * 0.75 - driverController.getLeftTriggerAxis() * 0.2;
 
     leftStickX = MathUtil.applyDeadband(leftStickX, JOYSTICK_AXIS_THRESHOLD) * speedMultSecondary * speedMultMain;
     leftStickY = MathUtil.applyDeadband(leftStickY, JOYSTICK_AXIS_THRESHOLD) * speedMultSecondary * speedMultMain;
     rightStickX = MathUtil.applyDeadband(rightStickX, JOYSTICK_AXIS_THRESHOLD) * speedMultSecondary * speedMultMain;
   }
 
-  public SwerveDrivetrain getDrivetrain()
-	{
-		return drivetrain;
-	}
+  public SwerveDrivetrain getDriveTrain() {
+    return drivetrain;
+  }
+
+  public CoralIntake getIntake() {
+    return intake;
+  }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

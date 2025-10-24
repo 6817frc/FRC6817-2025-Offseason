@@ -16,7 +16,6 @@ import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.Ports;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -37,6 +36,27 @@ public class CoralIntake extends SubsystemBase {
   public final AbsoluteEncoder wristEncoder;
   public final SparkMax m_intakeArmFollower;
   // public final SparkClosedLoopController armPID;
+  
+  // Set points for the arm
+  public double L1ArmPosition = 0.44;
+  public double L1WristPosition = 0.58;
+
+  public double L2ArmPosition = 0.30;
+  public double L2WristPosition = 0.3;
+
+  public double L3ArmPosition = 0.30;
+  public double L3WristPosition = 0.41;
+
+  public double travelArmPosition = 0.51;
+  public double travelWristPosition = 0.23;
+
+  public double intakeArmPosition = 0.30;
+  public double intakeWristPosition = 0.37;
+
+  boolean armManualMode = false;
+  boolean wristManualMode = false;
+  boolean leftManualMode = false;
+  boolean rightManualMode = false;
 
   public CoralIntake() {
     m_LED = new AddressableLED(Ports.PWM.LED_STRIP);
@@ -78,26 +98,7 @@ public class CoralIntake extends SubsystemBase {
     m_intakeWrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     m_intakeArm1.configure(arm1Config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     m_intakeArmFollower.configure(armFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-    
-    double value = SmartDashboard.getNumber("PValue", 3);
-    SmartDashboard.putNumber("PValue", value);
   }
-    public double L1ArmPosition = 0.44;
-    public double L2ArmPosition = 0.30;
-    public double L3ArmPosition = 0.30;
-    public double travelArmPosition = 0.51;
-    public double intakeArmPosition = 0.30;
-    
-    public double L1WristPosition = 0.58;
-    public double L2WristPosition = 0.3;
-    public double L3WristPosition = 0.41;
-    public double travelWristPosition = 0.23;
-    public double intakeWristPosition = 0.37;
-
-    boolean armManualMode = false;
-    boolean wristManualMode = false;
-    boolean leftManualMode = false;
-    boolean rightManualMode = false;
 
     /* Functions for various arm movements: */
 
@@ -137,7 +138,7 @@ public class CoralIntake extends SubsystemBase {
       armClosedLoopController.setReference(travelArmPosition, SparkMax.ControlType.kPosition, ClosedLoopSlot.kSlot0);
       wristClosedLoopController.setReference(travelWristPosition, SparkMax.ControlType.kPosition, ClosedLoopSlot.kSlot0);
     }
-//intake from Human Player Station
+    //intake from Human Player Station
     public void armIntake() {
       armClosedLoopController.setReference(intakeArmPosition, SparkMax.ControlType.kPosition, ClosedLoopSlot.kSlot0);
       wristClosedLoopController.setReference(intakeWristPosition, SparkMax.ControlType.kPosition, ClosedLoopSlot.kSlot0);
@@ -169,7 +170,24 @@ public class CoralIntake extends SubsystemBase {
     public void stopWrist() {
       m_intakeWrist.set(0);
     }
+
+    public AbsoluteEncoder getArmEncoder() {
+      return armEncoder;
+    }
+
+    public AbsoluteEncoder getWristEncoder() {
+      return wristEncoder;
+    }
     
+    /**
+     * Moves the intake wheel a set amount
+     * 
+     * @param power The power to set. Value between -1.0 and 1.0. Positive is in and negative is out
+     */
+    public void setWheelPower(double power) {
+      m_intakeWheels.set(power);
+    }
+
     //moves wheels for intake
     public void wheelIn(double power) {
       if (power != 0) {
@@ -198,7 +216,7 @@ public class CoralIntake extends SubsystemBase {
       m_intakeWheels.set(-1.0);
     }
     //stops all wheel movement
-    public void stopWheels() {
+    public void wheelStop() {
       m_intakeWheels.set(0);
     }
 
