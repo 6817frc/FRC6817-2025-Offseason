@@ -27,7 +27,7 @@ public class RobotContainer {
 
   public final CoralIntake intake = new CoralIntake();
 
-  private boolean useCopilot = false;
+  public boolean useCopilot = false;
   private double speedMultMain = 1;
   private double speedMultSecondary = 1;
 
@@ -84,7 +84,7 @@ public class RobotContainer {
 
   private void getDriveValues() {
     if (useCopilot) {
-      speedMultSecondary = 0.1;
+      speedMultSecondary = driverController.b().getAsBoolean() ? 0.2 : 0.1; // Increase speed if the b button is pressed in copilot mode
       leftStickX = copilotController.getLeftX();
       leftStickY = copilotController.getLeftY();
       rightStickX = copilotController.getRightX();
