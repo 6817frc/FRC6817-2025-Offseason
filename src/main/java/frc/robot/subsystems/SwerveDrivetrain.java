@@ -9,7 +9,9 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.config.PIDConstants;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -20,8 +22,11 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import com.studica.frc.AHRS;
@@ -29,6 +34,7 @@ import com.studica.frc.AHRS.NavXComType;
 
 import frc.robot.Constants;
 import frc.robot.Constants.DrivetrainConstants;
+import frc.robot.utils.LimelightHelpers;
 import frc.robot.utils.Ports;
 import frc.robot.utils.SwerveUtils;
 
@@ -104,15 +110,9 @@ public class SwerveDrivetrain extends SubsystemBase {
 	private double m_prevTime = WPIUtilJNI.now() * 1e-6;
 
 	// Odometry class for tracking robot pose
-	SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
-		DrivetrainConstants.DRIVE_KINEMATICS,
-		Rotation2d.fromDegrees(GYRO_ORIENTATION * m_gyro.getAngle()),
-		new SwerveModulePosition[] {
-			m_frontLeft.getPosition(),
-			m_frontRight.getPosition(),
-			m_rearLeft.getPosition(),
-			m_rearRight.getPosition()
-		});
+	SwerveDrivePoseEstimator m_odometry;
+
+	StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
 
 	// other variables
@@ -146,7 +146,15 @@ public class SwerveDrivetrain extends SubsystemBase {
 		Translation2d initialTranslation = new Translation2d(Units.inchesToMeters(FIELD_LENGTH_INCHES/2),Units.inchesToMeters(FIELD_WIDTH_INCHES/2)); // mid field
 		Rotation2d initialRotation = new Rotation2d(); 
 		Pose2d initialPose = new Pose2d(initialTranslation,initialRotation);
-		resetOdometry(initialPose);
+		m_odometry = new SwerveDrivePoseEstimator(
+		DrivetrainConstants.DRIVE_KINEMATICS,
+		Rotation2d.fromDegrees(GYRO_ORIENTATION * m_gyro.getAngle()),
+		new SwerveModulePosition[] {
+			m_frontLeft.getPosition(),
+			m_frontRight.getPosition(),
+			m_rearLeft.getPosition(),
+			m_rearRight.getPosition()
+		}, initialPose, VecBuilder.fill(0.25, 0.25, (Math.PI/2)), VecBuilder.fill(0.01, 0.01, Math.PI));
 
 		//creates a PID controller
 		turnPidController = new PIDController(TURN_PROPORTIONAL_GAIN, TURN_INTEGRAL_GAIN, TURN_DERIVATIVE_GAIN);	
@@ -191,7 +199,8 @@ public class SwerveDrivetrain extends SubsystemBase {
 	@Override
 	public void periodic() {
 		// Update the odometry in the periodic block
-		m_odometry.update(
+		m_odometry.updateWithTime(
+			Timer.getFPGATimestamp(),
 			Rotation2d.fromDegrees(GYRO_ORIENTATION * m_gyro.getAngle()),
 			new SwerveModulePosition[] {
 				m_frontLeft.getPosition(),
@@ -200,7 +209,14 @@ public class SwerveDrivetrain extends SubsystemBase {
 				m_rearRight.getPosition()
 			});
 
+		updateVisionMeasurement();
 		calculateTurnAngleUsingPidController();
+
+		publisher.set(getPose());
+	}
+
+	private void updateVisionMeasurement() {
+		m_odometry.addVisionMeasurement(LimelightHelpers.getBotPose2d("front"), (Timer.getFPGATimestamp() - LimelightHelpers.getLatency_Pipeline("front")), VecBuilder.fill(0.0, 0.0, 0.0));
 	}
 
 	/**
@@ -209,7 +225,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 	 * @return The pose.
 	 */
 	public Pose2d getPose() {
-		return m_odometry.getPoseMeters();
+		return m_odometry.getEstimatedPosition();
 	}
 
 	/**
