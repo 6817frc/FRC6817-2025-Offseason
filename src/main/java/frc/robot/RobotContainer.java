@@ -8,6 +8,7 @@ import frc.robot.subsystems.CoralIntake;
 import frc.robot.subsystems.SwerveDrivetrain;
 import frc.robot.utils.Ports;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -26,6 +27,8 @@ public class RobotContainer {
   public final SwerveDrivetrain drivetrain = new SwerveDrivetrain();
 
   public final CoralIntake intake = new CoralIntake();
+
+  public final Field2d field = new Field2d(); 
 
   public boolean useCopilot = false;
   private double speedMultMain = 1;

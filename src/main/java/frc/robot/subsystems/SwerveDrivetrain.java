@@ -146,6 +146,9 @@ public class SwerveDrivetrain extends SubsystemBase {
 		Translation2d initialTranslation = new Translation2d(Units.inchesToMeters(FIELD_LENGTH_INCHES/2),Units.inchesToMeters(FIELD_WIDTH_INCHES/2)); // mid field
 		Rotation2d initialRotation = new Rotation2d(); 
 		Pose2d initialPose = new Pose2d(initialTranslation,initialRotation);
+
+		
+		// final param: how much to trust the camera (lower values = trust camera more)
 		m_odometry = new SwerveDrivePoseEstimator(
 		DrivetrainConstants.DRIVE_KINEMATICS,
 		Rotation2d.fromDegrees(GYRO_ORIENTATION * m_gyro.getAngle()),
@@ -154,7 +157,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 			m_frontRight.getPosition(),
 			m_rearLeft.getPosition(),
 			m_rearRight.getPosition()
-		}, initialPose, VecBuilder.fill(0.25, 0.25, (Math.PI/2)), VecBuilder.fill(0.01, 0.01, Math.PI));
+		}, initialPose, VecBuilder.fill(0.0, 0.0, (Math.PI/4)), VecBuilder.fill(0.5, 0.5, Math.PI));
 
 		//creates a PID controller
 		turnPidController = new PIDController(TURN_PROPORTIONAL_GAIN, TURN_INTEGRAL_GAIN, TURN_DERIVATIVE_GAIN);	
@@ -216,7 +219,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 	}
 
 	private void updateVisionMeasurement() {
-		m_odometry.addVisionMeasurement(LimelightHelpers.getBotPose2d("front"), (Timer.getFPGATimestamp() - LimelightHelpers.getLatency_Pipeline("front")), VecBuilder.fill(0.0, 0.0, 0.0));
+		m_odometry.addVisionMeasurement(LimelightHelpers.getBotPose2d("front"), (Timer.getFPGATimestamp() - LimelightHelpers.getLatency_Pipeline("front")));
 	}
 
 	/**
