@@ -160,8 +160,8 @@ public class SwerveDrivetrain extends SubsystemBase {
 				m_rearRight.getPosition()
 			},
 			initialPose,
-			VecBuilder.fill(1, 1, (Math.PI/4)), // how much to trust the swerve (lower values = trust swerve more)
-			VecBuilder.fill(0, 0, Math.PI) // how much to trust the camera (lower values = trust camera more)
+			VecBuilder.fill(0.01, 0.01, 0.01), // how much to trust the swerve (lower values = trust swerve more)
+			VecBuilder.fill(0.5, 0.5, 0.5) // how much to trust the camera (lower values = trust camera more)
 		);
 
 		m_swerveOdometry = new SwerveDriveOdometry(
