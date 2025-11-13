@@ -27,6 +27,7 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+    SmartDashboard.putData("Swerve Odometry", m_robotContainer.field);
   }
 
   /**
@@ -120,5 +121,11 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("IMU Yaw", m_robotContainer.getDriveTrain().getImu().getYaw());
     SmartDashboard.putNumber("IMU Pitch", m_robotContainer.getDriveTrain().getImu().getPitch());
     SmartDashboard.putNumber("IMU Roll", m_robotContainer.getDriveTrain().getImu().getRoll());
+
+    if (m_robotContainer.usePoseEstimateChooser.getSelected()) {
+      m_robotContainer.field.setRobotPose(m_robotContainer.getDriveTrain().getPose());
+    } else {
+      m_robotContainer.field.setRobotPose(m_robotContainer.getDriveTrain().getSwervePose());
+    }
   }
 }

@@ -8,6 +8,9 @@ import frc.robot.subsystems.CoralIntake;
 import frc.robot.subsystems.SwerveDrivetrain;
 import frc.robot.utils.Ports;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -27,6 +30,10 @@ public class RobotContainer {
 
   public final CoralIntake intake = new CoralIntake();
 
+  public final Field2d field = new Field2d();
+
+  public final SendableChooser<Boolean> usePoseEstimateChooser = new SendableChooser<>();
+
   public boolean useCopilot = false;
   private double speedMultMain = 1;
   private double speedMultSecondary = 1;
@@ -45,6 +52,8 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+
+    configureChooser();
   }
 
   /**
@@ -100,6 +109,13 @@ public class RobotContainer {
     leftStickX = MathUtil.applyDeadband(leftStickX, JOYSTICK_AXIS_THRESHOLD) * speedMultSecondary * speedMultMain;
     leftStickY = MathUtil.applyDeadband(leftStickY, JOYSTICK_AXIS_THRESHOLD) * speedMultSecondary * speedMultMain;
     rightStickX = MathUtil.applyDeadband(rightStickX, JOYSTICK_AXIS_THRESHOLD) * speedMultSecondary * speedMultMain;
+  }
+
+  public void configureChooser() {
+    // Use Pose Estimate for dashboard field position
+    usePoseEstimateChooser.setDefaultOption("Yes", true);
+    usePoseEstimateChooser.addOption("No", false);
+    SmartDashboard.putData("Use Pose Estimate", usePoseEstimateChooser);
   }
 
   public SwerveDrivetrain getDriveTrain() {
