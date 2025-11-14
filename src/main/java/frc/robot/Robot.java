@@ -122,10 +122,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("IMU Pitch", m_robotContainer.getDriveTrain().getImu().getPitch());
     SmartDashboard.putNumber("IMU Roll", m_robotContainer.getDriveTrain().getImu().getRoll());
 
-    if (m_robotContainer.usePoseEstimateChooser.getSelected()) {
-      m_robotContainer.field.setRobotPose(m_robotContainer.getDriveTrain().getPose());
-    } else {
-      m_robotContainer.field.setRobotPose(m_robotContainer.getDriveTrain().getSwervePose());
-    }
+    m_robotContainer.field.setRobotPose(m_robotContainer.getDriveTrain().getPose());
   }
 }

@@ -18,7 +18,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
@@ -112,7 +111,6 @@ public class SwerveDrivetrain extends SubsystemBase {
 
 	// Odometry class for tracking robot pose
 	SwerveDrivePoseEstimator m_odometry;
-	SwerveDriveOdometry m_swerveOdometry;
 
 	StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
@@ -162,18 +160,6 @@ public class SwerveDrivetrain extends SubsystemBase {
 			initialPose,
 			VecBuilder.fill(0.01, 0.01, 0.01), // how much to trust the swerve (lower values = trust swerve more)
 			VecBuilder.fill(0.5, 0.5, 0.5) // how much to trust the camera (lower values = trust camera more)
-		);
-
-		m_swerveOdometry = new SwerveDriveOdometry(
-			DrivetrainConstants.DRIVE_KINEMATICS, 
-			Rotation2d.fromDegrees(GYRO_ORIENTATION * m_gyro.getAngle()),
-			new SwerveModulePosition[] {
-				m_frontLeft.getPosition(),
-				m_frontRight.getPosition(),
-				m_rearLeft.getPosition(),
-				m_rearRight.getPosition()
-			},
-			initialPose
 		);
 
 		//creates a PID controller
@@ -230,16 +216,6 @@ public class SwerveDrivetrain extends SubsystemBase {
 			}
 		);
 
-		m_swerveOdometry.update(
-			Rotation2d.fromDegrees(GYRO_ORIENTATION * m_gyro.getAngle()),
-			new SwerveModulePosition[] {
-				m_frontLeft.getPosition(),
-				m_frontRight.getPosition(),
-				m_rearLeft.getPosition(),
-				m_rearRight.getPosition()
-			}
-		);
-
 		updateVisionMeasurement();
 		calculateTurnAngleUsingPidController();
 
@@ -250,31 +226,23 @@ public class SwerveDrivetrain extends SubsystemBase {
 		LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-front");
 		boolean doRejectUpdate = false;
 		if (mt1 == null) { System.out.println("mt1 is null " + Timer.getFPGATimestamp()); return; }
-		SmartDashboard.putNumber("Tag Count", mt1.tagCount);
-		// if(mt1.tagCount == 1 && mt1.rawFiducials.length == 1)
-		// {
-		//   if(mt1.rawFiducials[0].ambiguity > .7)
-		//   {
-		// 	doRejectUpdate = true;
-		//   }
-		//   if(mt1.rawFiducials[0].distToCamera > 3)
-		//   {
-		// 	doRejectUpdate = true;
-		//   }
-		// }
+
 		if(mt1.tagCount == 0)
 		{
-		  doRejectUpdate = true;
+			doRejectUpdate = true;
 		}
-  
+
 		if(!doRejectUpdate)
 		{
-		  m_odometry.addVisionMeasurement(
-			  mt1.pose,
-			  mt1.timestampSeconds);
+			m_odometry.addVisionMeasurement(
+				mt1.pose,
+				mt1.timestampSeconds
+			);
+
 		}
+		// LimelightHelpers.printPoseEstimate(mt1);
+		SmartDashboard.putNumber("Tag Distance", mt1.avgTagDist);
 		SmartDashboard.putString("mt1 pose", mt1.pose.toString());
-		// m_odometry.addVisionMeasurement(LimelightHelpers.getBotPose2d("front"), (Timer.getFPGATimestamp() - LimelightHelpers.getLatency_Pipeline("front")));
 	}
 
 	/**
@@ -284,10 +252,6 @@ public class SwerveDrivetrain extends SubsystemBase {
 	 */
 	public Pose2d getPose() {
 		return m_odometry.getEstimatedPosition();
-	}
-
-	public Pose2d getSwervePose() {
-		return  m_swerveOdometry.getPoseMeters();
 	}
 
 	/**
@@ -304,17 +268,6 @@ public class SwerveDrivetrain extends SubsystemBase {
 				m_rearLeft.getPosition(),
 				m_rearRight.getPosition()
 			},
-			pose
-		);
-
-		m_swerveOdometry.resetPosition(
-			Rotation2d.fromDegrees(GYRO_ORIENTATION * m_gyro.getAngle()),
-			new SwerveModulePosition[] {
-				m_frontLeft.getPosition(),
-				m_frontRight.getPosition(),
-				m_rearLeft.getPosition(),
-				m_rearRight.getPosition()
-			}, 
 			pose
 		);
 	}
