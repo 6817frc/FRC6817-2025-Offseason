@@ -70,6 +70,9 @@ public class RobotContainer {
 
     
     driverController.a().onTrue(Commands.runOnce(() -> {useCopilot = !useCopilot;})); // button:A - Transfer drive to copilot
+
+    driverController.x().whileTrue(Commands.run(() -> drivetrain.faceTowardTag())); // button:X - face the robot toward the tag
+    driverController.x().onFalse(Commands.runOnce(() -> {drivetrain.turnOffset = 0;})); // Reset turn offset
     
     driverController.y().onTrue(Commands.runOnce(() -> drivetrain.zeroHeading())); // button:Y - Reset field orientation
     

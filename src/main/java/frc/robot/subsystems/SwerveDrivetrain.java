@@ -112,6 +112,8 @@ public class SwerveDrivetrain extends SubsystemBase {
 	// Odometry class for tracking robot pose
 	SwerveDrivePoseEstimator m_odometry;
 
+	LimelightHelpers.PoseEstimate mt1;
+
 	StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
 
@@ -123,6 +125,8 @@ public class SwerveDrivetrain extends SubsystemBase {
 	private PIDController turnPidController; // the PID controller used to turn
 
 	private RobotConfig config;
+
+	public double turnOffset = 0;
 
 	/** Creates a new Drivetrain. */
 	public SwerveDrivetrain() {
@@ -223,7 +227,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 	}
 
 	private void updateVisionMeasurement() {
-		LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-front");
+		mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-front");
 		boolean doRejectUpdate = false;
 		if (mt1 == null) { System.out.println("mt1 is null " + Timer.getFPGATimestamp()); return; }
 
@@ -283,6 +287,8 @@ public class SwerveDrivetrain extends SubsystemBase {
 	 * @param rateLimit     Whether to enable rate limiting for smoother control.
 	 */
 	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
+
+		rot += turnOffset;
 		
 		double xSpeedCommanded;
 		double ySpeedCommanded;
@@ -362,6 +368,13 @@ public class SwerveDrivetrain extends SubsystemBase {
 
 	public void driveRobotRelative(ChassisSpeeds speeds){
 		this.drive(speeds.vxMetersPerSecond,speeds.vyMetersPerSecond,speeds.omegaRadiansPerSecond,false,true);
+	}
+
+	public void faceTowardTag() {
+		turnOffset = 0;
+		if (mt1 == null || mt1.tagCount == 0) return;
+		LimelightHelpers.RawFiducial fiducial = mt1.rawFiducials[0];
+		turnOffset = fiducial.txnc / -100.0;
 	}
 
 	/**
