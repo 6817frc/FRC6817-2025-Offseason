@@ -374,7 +374,9 @@ public class SwerveDrivetrain extends SubsystemBase {
 		turnOffset = 0;
 		if (mt1 == null || mt1.tagCount == 0) return;
 		LimelightHelpers.RawFiducial fiducial = mt1.rawFiducials[0];
-		turnOffset = fiducial.txnc / -100.0;
+		turnOffset = fiducial.txnc * 0.0064;
+		turnOffset += fiducial.distToCamera * Math.asin(fiducial.txnc * (3.14159 / 180.0)) * 0.08;
+		turnOffset *= -1;
 	}
 
 	/**
