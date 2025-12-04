@@ -37,6 +37,7 @@ import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.utils.LimelightHelpers;
 import frc.robot.utils.Ports;
 import frc.robot.utils.SwerveUtils;
+import frc.robot.utils.Utils;
 
 /**
  * The {@code SwerveDrivetrain} class contains fields and methods pertaining to the function of the drivetrain.
@@ -116,6 +117,9 @@ public class SwerveDrivetrain extends SubsystemBase {
 
 	StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault().getStructTopic("MyPose", Pose2d.struct).publish();
 
+	// Ideal position for goToL2Position
+	Pose2d idealPose;
+
 
 	// other variables
 	private boolean isTurning;  // indicates that the drivetrain is turning using the PID controller hereunder
@@ -126,6 +130,8 @@ public class SwerveDrivetrain extends SubsystemBase {
 
 	private RobotConfig config;
 
+	public double xOffset = 0;
+	public double yOffset = 0;
 	public double turnOffset = 0;
 
 	/** Creates a new Drivetrain. */
@@ -287,7 +293,8 @@ public class SwerveDrivetrain extends SubsystemBase {
 	 * @param rateLimit     Whether to enable rate limiting for smoother control.
 	 */
 	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
-
+		xSpeed += xOffset;
+		ySpeed += yOffset;
 		rot += turnOffset;
 		
 		double xSpeedCommanded;
@@ -370,6 +377,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 		this.drive(speeds.vxMetersPerSecond,speeds.vyMetersPerSecond,speeds.omegaRadiansPerSecond,false,true);
 	}
 
+	// Face toward the center of the tag (any tag)
 	public void faceTowardTag() {
 		turnOffset = 0;
 		if (mt1 == null || mt1.tagCount == 0) return;
@@ -377,6 +385,39 @@ public class SwerveDrivetrain extends SubsystemBase {
 		turnOffset = fiducial.txnc * 0.0064;
 		turnOffset += fiducial.distToCamera * Math.asin(fiducial.txnc * (3.14159 / 180.0)) * 0.08;
 		turnOffset *= -1;
+	}
+
+	/**
+	 * Set the ideal pose for scoring on L2
+	 * 
+	 * @param id The tag id
+	 */
+	public void setL2Pose() {
+		if (mt1 == null || mt1.tagCount == 0) return;
+		int id = mt1.rawFiducials[0].id;
+		switch (id) {
+			case 10:
+				idealPose = new Pose2d(11.736883405824786, 4.112577365918698, Rotation2d.fromDegrees(179.71645692037686));
+				// Ideal pose: [11.736883405824786, 4.112577365918698, 179.71645692037686]
+		}
+	}
+
+	public void goToIdealPose() {
+		Pose2d currentPose = getPose();
+		Pose2d poseDifference = new Pose2d(
+			idealPose.getX() - currentPose.getX(),
+			idealPose.getY() - currentPose.getY(),
+			Rotation2d.fromDegrees(idealPose.getRotation().getDegrees() - currentPose.getRotation().getDegrees())
+		);
+		xOffset = Utils.clamp(0.6 * poseDifference.getX() - 0.2, -0.4, 0.4);
+		yOffset = Utils.clamp(0.6 * poseDifference.getY() - 0.2, -0.4, 0.4);
+		turnOffset = 0;
+	}
+
+	public void resetOffsets() {
+		xOffset = 0;
+		yOffset = 0;
+		turnOffset = 0;
 	}
 
 	/**

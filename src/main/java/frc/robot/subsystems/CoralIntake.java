@@ -42,7 +42,7 @@ public class CoralIntake extends SubsystemBase {
   public double L1WristPosition = 0.58;
 
   public double L2ArmPosition = 0.30;
-  public double L2WristPosition = 0.3;
+  public double L2WristPosition = 0.29;
 
   public double L3ArmPosition = 0.30;
   public double L3WristPosition = 0.41;

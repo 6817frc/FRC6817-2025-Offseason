@@ -72,7 +72,7 @@ public class RobotContainer {
     driverController.a().onTrue(Commands.runOnce(() -> {useCopilot = !useCopilot;})); // button:A - Transfer drive to copilot
 
     driverController.x().whileTrue(Commands.run(() -> drivetrain.faceTowardTag())); // button:X - face the robot toward the tag
-    driverController.x().onFalse(Commands.runOnce(() -> {drivetrain.turnOffset = 0;})); // Reset turn offset
+    driverController.x().onFalse(Commands.runOnce(() -> drivetrain.resetOffsets())); // Reset turn offset
     
     driverController.y().onTrue(Commands.runOnce(() -> drivetrain.zeroHeading())); // button:Y - Reset field orientation
     
@@ -89,6 +89,10 @@ public class RobotContainer {
 
     driverController.leftBumper().onTrue(Commands.runOnce(() -> intake.setWheelPower(0.1))); // leftBumper - Wheel In
     driverController.leftBumper().onFalse(Commands.runOnce(() -> intake.wheelStop())); // Stop wheel
+
+    driverController.start().onTrue(Commands.runOnce(() -> drivetrain.setL2Pose()));
+    driverController.start().whileTrue(Commands.run(() -> drivetrain.goToIdealPose()));
+    driverController.start().onFalse(Commands.run(() -> drivetrain.resetOffsets()));
   }
 
   private void getDriveValues() {
