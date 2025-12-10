@@ -397,21 +397,27 @@ public class SwerveDrivetrain extends SubsystemBase {
 		int id = mt1.rawFiducials[0].id;
 		switch (id) {
 			case 10:
-				idealPose = new Pose2d(11.736883405824786, 4.112577365918698, Rotation2d.fromDegrees(179.71645692037686));
-				// Ideal pose: [11.736883405824786, 4.112577365918698, 179.71645692037686]
+				idealPose = new Pose2d(11.72273613042997, 4.091546940023934, Rotation2d.fromDegrees(180));
+				// Ideal pose: [11.72273613042997, 4.091546940023934, -179.91017007651973]
 		}
 	}
 
 	public void goToIdealPose() {
+		if (idealPose == null) {
+			System.out.println("Ideal Pose is null");
+			return;
+		}
 		Pose2d currentPose = getPose();
 		Pose2d poseDifference = new Pose2d(
 			idealPose.getX() - currentPose.getX(),
 			idealPose.getY() - currentPose.getY(),
-			Rotation2d.fromDegrees(idealPose.getRotation().getDegrees() - currentPose.getRotation().getDegrees())
+			Rotation2d.fromDegrees(Utils.convertTo180(idealPose.getRotation().getDegrees() - currentPose.getRotation().getDegrees()))
 		);
-		xOffset = Utils.clamp(0.6 * poseDifference.getX() - 0.2, -0.4, 0.4);
-		yOffset = Utils.clamp(0.6 * poseDifference.getY() - 0.2, -0.4, 0.4);
-		turnOffset = 0;
+		// TODO Use PIDController for more control
+		// https://austinshalit.github.io/allwpilib/allwpilib/docs/release/java/edu/wpi/first/wpilibj/controller/PIDController.html
+		xOffset = Utils.clamp(0.4 * poseDifference.getX(), -0.4, 0.4);
+		yOffset = Utils.clamp(0.4 * poseDifference.getY(), -0.4, 0.4);
+		turnOffset = Utils.clamp(0.005 * poseDifference.getRotation().getDegrees(), -0.4, 0.4);
 	}
 
 	public void resetOffsets() {

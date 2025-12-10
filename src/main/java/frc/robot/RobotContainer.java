@@ -71,8 +71,9 @@ public class RobotContainer {
     
     driverController.a().onTrue(Commands.runOnce(() -> {useCopilot = !useCopilot;})); // button:A - Transfer drive to copilot
 
-    driverController.x().whileTrue(Commands.run(() -> drivetrain.faceTowardTag())); // button:X - face the robot toward the tag
-    driverController.x().onFalse(Commands.runOnce(() -> drivetrain.resetOffsets())); // Reset turn offset
+    driverController.x().onTrue(Commands.runOnce(() -> drivetrain.setL2Pose())); // button:X - Set the pose based on the tag
+    driverController.x().whileTrue(Commands.run(() -> drivetrain.goToIdealPose())); // Go to the pose
+    driverController.x().onFalse(Commands.run(() -> drivetrain.resetOffsets())); // Reset
     
     driverController.y().onTrue(Commands.runOnce(() -> drivetrain.zeroHeading())); // button:Y - Reset field orientation
     
@@ -90,14 +91,13 @@ public class RobotContainer {
     driverController.leftBumper().onTrue(Commands.runOnce(() -> intake.setWheelPower(0.1))); // leftBumper - Wheel In
     driverController.leftBumper().onFalse(Commands.runOnce(() -> intake.wheelStop())); // Stop wheel
 
-    driverController.start().onTrue(Commands.runOnce(() -> drivetrain.setL2Pose()));
-    driverController.start().whileTrue(Commands.run(() -> drivetrain.goToIdealPose()));
-    driverController.start().onFalse(Commands.run(() -> drivetrain.resetOffsets()));
+    driverController.start().whileTrue(Commands.run(() -> drivetrain.faceTowardTag())); // start - face the robot toward the tag
+    driverController.start().onFalse(Commands.runOnce(() -> drivetrain.resetOffsets())); // Reset turn offset
   }
 
   private void getDriveValues() {
     if (useCopilot) {
-      speedMultSecondary = driverController.b().getAsBoolean() ? 0.2 : 0.1; // Increase speed if the b button is pressed in copilot mode
+      speedMultSecondary = driverController.b().getAsBoolean() ? 0.4 : 0.1; // Increase speed if the b button is pressed in copilot mode
       leftStickX = copilotController.getLeftX();
       leftStickY = copilotController.getLeftY();
       rightStickX = copilotController.getRightX();
