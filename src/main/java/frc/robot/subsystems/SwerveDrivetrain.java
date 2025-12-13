@@ -130,9 +130,14 @@ public class SwerveDrivetrain extends SubsystemBase {
 
 	private RobotConfig config;
 
-	public double xOffset = 0;
-	public double yOffset = 0;
-	public double turnOffset = 0;
+	// Offsets the jostick for overriding based on limelight
+	private double xOffset;
+	private double yOffset;
+	private double turnOffset;
+
+	private PIDController xOffsetPID = new PIDController(1, 0, 0);
+	private PIDController yOffsetPID = new PIDController(1, 0, 0);
+	private PIDController turnOffsetPID = new PIDController(1, 0, 0);
 
 	/** Creates a new Drivetrain. */
 	public SwerveDrivetrain() {
@@ -172,6 +177,10 @@ public class SwerveDrivetrain extends SubsystemBase {
 			VecBuilder.fill(0.5, 0.5, 0.5) // how much to trust the camera (lower values = trust camera more)
 		);
 
+		xOffsetPID.setTolerance(0.01);
+		yOffsetPID.setTolerance(0.01);
+		turnOffsetPID.setTolerance(0.01);
+
 		//creates a PID controller
 		turnPidController = new PIDController(TURN_PROPORTIONAL_GAIN, TURN_INTEGRAL_GAIN, TURN_DERIVATIVE_GAIN);	
 		
@@ -184,8 +193,8 @@ public class SwerveDrivetrain extends SubsystemBase {
 			e.printStackTrace();
 		}
 
-		// SmartDashboard.putNumber("wheelRadiusMeters",config.moduleConfig.wheelRadiusMeters);
-		// SmartDashboard.putNumber("driveCurrentLimit",config.moduleConfig.driveCurrentLimit);
+		SmartDashboard.putNumber("wheelRadiusMeters",config.moduleConfig.wheelRadiusMeters);
+		SmartDashboard.putNumber("driveCurrentLimit",config.moduleConfig.driveCurrentLimit);
 
 		AutoBuilder.configure(
             this::getPose, // Robot pose supplier
@@ -293,6 +302,16 @@ public class SwerveDrivetrain extends SubsystemBase {
 	 * @param rateLimit     Whether to enable rate limiting for smoother control.
 	 */
 	public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
+		// HERE
+		// xOffset += xOffsetPID.calculate(xOffset);
+		xOffset += xOffsetPID.calculate(xOffset);
+		yOffset += yOffsetPID.calculate(yOffset);
+		turnOffset += turnOffsetPID.calculate(turnOffset);
+
+		SmartDashboard.putNumber("X Offset", xOffset);
+		SmartDashboard.putNumber("Y Offset", yOffset);
+		SmartDashboard.putNumber("Turn Offset", turnOffset);
+
 		xSpeed += xOffset;
 		ySpeed += yOffset;
 		rot += turnOffset;
@@ -382,9 +401,7 @@ public class SwerveDrivetrain extends SubsystemBase {
 		turnOffset = 0;
 		if (mt1 == null || mt1.tagCount == 0) return;
 		LimelightHelpers.RawFiducial fiducial = mt1.rawFiducials[0];
-		turnOffset = fiducial.txnc * 0.0064;
-		turnOffset += fiducial.distToCamera * Math.asin(fiducial.txnc * (3.14159 / 180.0)) * 0.08;
-		turnOffset *= -1;
+		turnOffsetPID.setSetpoint(-1 * (fiducial.txnc * 0.0064 + fiducial.distToCamera * Math.asin(fiducial.txnc * (3.14159 / 180.0)) * 0.08));
 	}
 
 	/**
@@ -413,17 +430,18 @@ public class SwerveDrivetrain extends SubsystemBase {
 			idealPose.getY() - currentPose.getY(),
 			Rotation2d.fromDegrees(Utils.convertTo180(idealPose.getRotation().getDegrees() - currentPose.getRotation().getDegrees()))
 		);
-		// TODO Use PIDController for more control
-		// https://austinshalit.github.io/allwpilib/allwpilib/docs/release/java/edu/wpi/first/wpilibj/controller/PIDController.html
-		xOffset = Utils.clamp(0.4 * poseDifference.getX(), -0.4, 0.4);
-		yOffset = Utils.clamp(0.4 * poseDifference.getY(), -0.4, 0.4);
-		turnOffset = Utils.clamp(0.005 * poseDifference.getRotation().getDegrees(), -0.4, 0.4);
+		xOffsetPID.setSetpoint(Utils.clamp(0.4 * poseDifference.getX(), -0.4, 0.4));
+		yOffsetPID.setSetpoint(Utils.clamp(0.4 * poseDifference.getY(), -0.4, 0.4));
+		turnOffsetPID.setSetpoint(Utils.clamp(0.005 * poseDifference.getRotation().getDegrees(), -0.4, 0.4));
 	}
 
 	public void resetOffsets() {
 		xOffset = 0;
 		yOffset = 0;
 		turnOffset = 0;
+		xOffsetPID.setSetpoint(0);
+		yOffsetPID.setSetpoint(0);
+		turnOffsetPID.setSetpoint(0);
 	}
 
 	/**

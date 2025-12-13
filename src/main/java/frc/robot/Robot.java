@@ -122,8 +122,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("IMU Pitch", m_robotContainer.getDriveTrain().getImu().getPitch());
     SmartDashboard.putNumber("IMU Roll", m_robotContainer.getDriveTrain().getImu().getRoll());
 
-    SmartDashboard.putNumber("Turn Offset", m_robotContainer.getDriveTrain().turnOffset);
-
     m_robotContainer.field.setRobotPose(m_robotContainer.getDriveTrain().getPose());
   }
 }
